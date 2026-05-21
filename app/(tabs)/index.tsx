@@ -1,98 +1,189 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(1)).current;
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const quotes = [
+    "Allah tidak pernah silap dalam mengatur hidup awak, so kita kene yakin setiap yang berlaku pasti ada ganjarannya suatu hari nanti.",
+    "Tenanglah, apa yang ditakdirkan untuk awak pasti akan sampai kepada awak juga nanti.",
+    "Jangan terlalu risau. Allah tahu apa yang terbaik untuk awak.",
+    "Kadang Allah tangguhkan sesuatu kerana Dia mahu beri yang lebih baik.",
+    "Senyum selalu. Allah nak jaga awak dalam cara yang awak tak nampak.",
+    "Percaya pada takdir Allah. Setiap yang berlaku pasti ada hikmahnya.",
+    "Hari ini mungkin berat, tapi Allah tidak akan membebani hamba-Nya melebihi kemampuan.",
+    "Semoga Amir diberikan kebahagiaan yang melimpah dan selalu dikelilingi oleh orang-orang yang baik. ",
+    "Semoga dapat siapkan lab and FYP dengan lancar dan dapat hasil yang memuaskan.",
+    "Semoga Amir tak kene marah dengan lecturer nanti oceyyy, so dont be so sad and just be happy.",
+  ];
+
+  const [quote, setQuote] = useState("Assalamualaikum, Amir Zafran. I hope you will be happy untuk sepanjang hari ini ✨");
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float1, {
+          toValue: -25,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float1, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float2, {
+          toValue: 20,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(float2, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const nextQuote = () => {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    setQuote(quotes[randomIndex]);
+
+    Animated.sequence([
+      Animated.spring(scale, {
+        toValue: 1.08,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  return (
+    <View style={styles.container}>
+      <Animated.Text style={[styles.starOne, { transform: [{ translateY: float1 }] }]}>
+        ⭐
+      </Animated.Text>
+
+      <Animated.Text style={[styles.loveOne, { transform: [{ translateY: float2 }] }]}>
+        💙
+      </Animated.Text>
+
+      <Animated.Text style={[styles.starTwo, { transform: [{ translateY: float2 }] }]}>
+        ✨
+      </Animated.Text>
+
+      <Text style={styles.title}>Hi, Amir</Text>
+      <Text style={styles.subtitle}>Always be happy & senyum selalu oceyy 🤍</Text>
+
+      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+        <Text style={styles.quote}>“{quote}”</Text>
+      </Animated.View>
+
+      <TouchableOpacity style={styles.button} onPress={nextQuote}>
+        <Text style={styles.buttonText}>Seterusnya ⭐</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.footer}>
+        Ingat, Allah sentiasa ada bersama kamu.
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#EAF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
   },
-  stepContainer: {
-    gap: 8,
+  starOne: {
+    position: "absolute",
+    top: 90,
+    left: 45,
+    fontSize: 42,
+  },
+  loveOne: {
+    position: "absolute",
+    top: 150,
+    right: 50,
+    fontSize: 36,
+  },
+  starTwo: {
+    position: "absolute",
+    bottom: 140,
+    left: 60,
+    fontSize: 38,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: "bold",
+    color: "#1E4D8C",
+    textAlign: "center",
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 18,
+    color: "#3A6EA5",
+    marginBottom: 30,
+    fontWeight: "600",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    padding: 28,
+    borderRadius: 24,
+    width: "100%",
+    minHeight: 220,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 5,
+    marginBottom: 30,
+  },
+  quote: {
+    fontSize: 22,
+    lineHeight: 34,
+    textAlign: "center",
+    color: "#17324D",
+    fontWeight: "600",
+  },
+  button: {
+    backgroundColor: "#4A90E2",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    marginBottom: 25,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  footer: {
+    fontSize: 15,
+    color: "#3A6EA5",
+    textAlign: "center",
+    fontWeight: "500",
+    
   },
 });
