@@ -11,6 +11,7 @@ export default function HomeScreen() {
   const float1 = useRef(new Animated.Value(0)).current;
   const float2 = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
+  const fade = useRef(new Animated.Value(1)).current;
 
   const quotes = [
     "Allah tidak pernah silap dalam mengatur hidup awak, so kita kene yakin setiap yang berlaku pasti ada ganjarannya suatu hari nanti.",
@@ -23,13 +24,14 @@ export default function HomeScreen() {
     "Semoga Amir diberikan kebahagiaan yang melimpah dan selalu dikelilingi oleh orang-orang yang baik. ",
     "Semoga dapat siapkan lab and FYP dengan lancar dan dapat hasil yang memuaskan.",
     "Semoga Amir tak kene marah dengan lecturer nanti oceyyy, so dont be so sad and just be happy.",
-    "Last but not least, semoga Amir sentiasa kuat, bahagia, dan terus percaya bahawa aturan Allah itu sentiasa yang terbaik untuk awak 🤍",
+    "Last but not least, semoga Amir sentiasa kuat, bahagia, dan terus percaya bahawa aturan Allah itu sentiasa yang terbaik 🤍",
   ];
 
   const mainText =
     "Assalamualaikum, Amir Zafran. I hope you will be happy untuk sepanjang hari ini ✨";
 
   const [quote, setQuote] = useState(mainText);
+  const [typedQuote, setTypedQuote] = useState(mainText);
   const [index, setIndex] = useState(-1);
 
   const isLastPage = index === quotes.length - 1;
@@ -66,16 +68,39 @@ export default function HomeScreen() {
     ).start();
   }, []);
 
-  const nextQuote = () => {
-    if (isLastPage) return;
+  useEffect(() => {
+    setTypedQuote("");
 
-    const nextIndex = index + 1;
-    setIndex(nextIndex);
-    setQuote(quotes[nextIndex]);
+    let currentText = "";
+    let currentIndex = 0;
 
+    const typing = setInterval(() => {
+      currentText += quote[currentIndex];
+      setTypedQuote(currentText);
+      currentIndex++;
+
+      if (currentIndex >= quote.length) {
+        clearInterval(typing);
+      }
+    }, 35);
+
+    return () => clearInterval(typing);
+  }, [quote]);
+
+  const playAnimation = (isFinal: boolean) => {
     Animated.sequence([
+      Animated.timing(fade, {
+        toValue: 0.4,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
       Animated.spring(scale, {
-        toValue: nextIndex === quotes.length - 1 ? 1.18 : 1.08,
+        toValue: isFinal ? 1.18 : 1.08,
         useNativeDriver: true,
       }),
       Animated.spring(scale, {
@@ -85,13 +110,31 @@ export default function HomeScreen() {
     ]).start();
   };
 
+  const nextQuote = () => {
+    if (isLastPage) return;
+
+    const nextIndex = index + 1;
+    setIndex(nextIndex);
+    setQuote(quotes[nextIndex]);
+    playAnimation(nextIndex === quotes.length - 1);
+  };
+
   const backToMain = () => {
     setIndex(-1);
     setQuote(mainText);
+    playAnimation(false);
   };
 
   return (
     <View style={styles.container}>
+      <Animated.Text style={[styles.cloudOne, { transform: [{ translateY: float1 }] }]}>
+        ☁️
+      </Animated.Text>
+
+      <Animated.Text style={[styles.cloudTwo, { transform: [{ translateY: float2 }] }]}>
+        ☁️
+      </Animated.Text>
+
       <Animated.Text style={[styles.sparkleOne, { transform: [{ translateY: float1 }] }]}>
         ✨
       </Animated.Text>
@@ -123,20 +166,33 @@ export default function HomeScreen() {
       <Text style={styles.title}>Hi, Amir</Text>
       <Text style={styles.subtitle}>Always be happy & senyum selalu oceyy 🤍</Text>
 
-      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
-        <Text style={styles.quote}>“{quote}”</Text>
+      <Animated.View
+        style={[
+          styles.card,
+          {
+            opacity: fade,
+            transform: [{ scale }],
+          },
+        ]}
+      >
+        <Text style={styles.quote}>“{typedQuote}”</Text>
 
+        {isLastPage && (
+          <Animated.Text style={[styles.finalEmoji, { transform: [{ scale }] }]}>
+            ✨🌟🤍🌟✨
+          </Animated.Text>
+        )}
       </Animated.View>
 
       {!isLastPage && (
         <TouchableOpacity style={styles.button} onPress={nextQuote}>
-          <Text style={styles.buttonText}> seterusnya ✨</Text>
+          <Text style={styles.buttonText}>Tekan untuk lihat ayat seterusnya ✨</Text>
         </TouchableOpacity>
       )}
 
       {isLastPage && (
         <View style={styles.lastPageContainer}>
-          
+          <Text style={styles.doneText}>Selesai ✨🤍✨</Text>
 
           <TouchableOpacity style={styles.backButton} onPress={backToMain}>
             <Text style={styles.backButtonText}>Kembali ke Awal ↺</Text>
@@ -158,11 +214,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
+    overflow: "hidden",
+  },
+  cloudOne: {
+    position: "absolute",
+    top: 40,
+    left: 25,
+    fontSize: 42,
+    opacity: 0.75,
+  },
+  cloudTwo: {
+    position: "absolute",
+    bottom: 55,
+    right: 30,
+    fontSize: 46,
+    opacity: 0.75,
   },
   sparkleOne: {
     position: "absolute",
     top: 65,
-    right: 100,
+    right: 70,
     fontSize: 32,
   },
   sparkleTwo: {
@@ -173,7 +244,7 @@ const styles = StyleSheet.create({
   },
   sparkleThree: {
     position: "absolute",
-    top: 165,
+    top: 245,
     right: 35,
     fontSize: 28,
   },
@@ -185,7 +256,7 @@ const styles = StyleSheet.create({
   },
   sparkleFive: {
     position: "absolute",
-    bottom: 150,
+    bottom: 210,
     right: 55,
     fontSize: 32,
   },
@@ -220,7 +291,7 @@ const styles = StyleSheet.create({
     padding: 28,
     borderRadius: 24,
     width: "100%",
-    minHeight: 230,
+    minHeight: 245,
     justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.12,
