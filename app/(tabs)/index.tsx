@@ -13,22 +13,26 @@ export default function HomeScreen() {
   const scale = useRef(new Animated.Value(1)).current;
 
   const quotes = [
-    "Allah tidak pernah silap dalam mengatur hidup awak. Yakinlah, setiap yang berlaku pasti ada hikmahnya.",
-    "Sabar dan tenang tau, apa yang ditakdirkan untuk awak pasti akan sampai kepada awak pada waktu yang tepat.",
+    "Allah tidak pernah silap dalam mengatur hidup awak, so kita kene yakin setiap yang berlaku pasti ada ganjarannya suatu hari nanti.",
+    "Tenanglah, apa yang ditakdirkan untuk awak pasti akan sampai kepada awak juga nanti.",
     "Jangan terlalu risau. Allah tahu apa yang terbaik untuk awak.",
     "Kadang Allah tangguhkan sesuatu kerana Dia mahu beri yang lebih baik.",
-    "Senyumlah cikit oceyyy. Awak sedang dijaga oleh Allah dalam cara yang awak belum nampak.",
-    "Percaya pada takdir Allah. Setiap ujian pasti ada ganjarannya.",
+    "Senyum. Kamu sedang dijaga oleh Allah dalam cara yang kamu belum nampak.",
+    "Percaya pada takdir Allah. Setiap yang berlaku pasti ada hikmahnya.",
     "Hari ini mungkin berat, tapi Allah tidak akan membebani hamba-Nya melebihi kemampuan.",
-    "Semoga Amir diberikan kebahagiaan yang melimpah dan selalu dikelilingi orang yang baik.",
-    "Semoga lab dan FYP Amir dipermudahkan dan mendapat hasil yang memuaskan.",
-    "Jangan sedih lama-lama. Awak kuat, awak mampu, dan Allah sentiasa ada.",
-    "Semoga Amir tak kene marah dengan lecturer todayyy",
+    "Semoga Amir diberikan kebahagiaan yang melimpah dan selalu dikelilingi oleh orang-orang yang baik. ",
+    "Semoga dapat siapkan lab and FYP dengan lancar dan dapat hasil yang memuaskan.",
+    "Semoga Amir tak kene marah dengan lecturer nanti oceyyy, so dont be so sad and just be happy.",
+    "Last but not least, semoga Amir sentiasa kuat, bahagia, dan terus percaya bahawa aturan Allah itu sentiasa yang terbaik untuk awak 🤍",
   ];
 
-  const [quote, setQuote] = useState(
-    "Assalamualaikum, Amir Zafran. Semoga hari ini dipenuhi senyuman dan ketenangan ✨"
-  );
+  const mainText =
+    "Assalamualaikum, Amir Zafran. I hope you will be happy untuk sepanjang hari ini ✨";
+
+  const [quote, setQuote] = useState(mainText);
+  const [index, setIndex] = useState(-1);
+
+  const isLastPage = index === quotes.length - 1;
 
   useEffect(() => {
     Animated.loop(
@@ -49,7 +53,7 @@ export default function HomeScreen() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(float2, {
-          toValue: 20,
+          toValue: 25,
           duration: 1500,
           useNativeDriver: true,
         }),
@@ -63,12 +67,15 @@ export default function HomeScreen() {
   }, []);
 
   const nextQuote = () => {
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    setQuote(quotes[randomIndex]);
+    if (isLastPage) return;
+
+    const nextIndex = index + 1;
+    setIndex(nextIndex);
+    setQuote(quotes[nextIndex]);
 
     Animated.sequence([
       Animated.spring(scale, {
-        toValue: 1.08,
+        toValue: nextIndex === quotes.length - 1 ? 1.18 : 1.08,
         useNativeDriver: true,
       }),
       Animated.spring(scale, {
@@ -78,22 +85,35 @@ export default function HomeScreen() {
     ]).start();
   };
 
+  const backToMain = () => {
+    setIndex(-1);
+    setQuote(mainText);
+  };
+
   return (
     <View style={styles.container}>
       <Animated.Text style={[styles.sparkleOne, { transform: [{ translateY: float1 }] }]}>
-        ✦
-      </Animated.Text>
-
-      <Animated.Text style={[styles.sparkleTwo, { transform: [{ translateY: float2 }] }]}>
         ✨
       </Animated.Text>
 
+      <Animated.Text style={[styles.sparkleTwo, { transform: [{ translateY: float2 }] }]}>
+        🌟
+      </Animated.Text>
+
       <Animated.Text style={[styles.sparkleThree, { transform: [{ translateY: float1 }] }]}>
-        ❈
+        ✨
       </Animated.Text>
 
       <Animated.Text style={[styles.sparkleFour, { transform: [{ translateY: float2 }] }]}>
         ⭐
+      </Animated.Text>
+
+      <Animated.Text style={[styles.sparkleFive, { transform: [{ translateY: float1 }] }]}>
+        💫
+      </Animated.Text>
+
+      <Animated.Text style={[styles.sparkleSix, { transform: [{ translateY: float2 }] }]}>
+        ✨
       </Animated.Text>
 
       <Animated.Text style={[styles.loveOne, { transform: [{ translateY: float1 }] }]}>
@@ -101,17 +121,32 @@ export default function HomeScreen() {
       </Animated.Text>
 
       <Text style={styles.title}>Hi, Amir</Text>
-      <Text style={styles.subtitle}>Always be happy & senyum selalu oceyyy 🤍</Text>
+      <Text style={styles.subtitle}>Always be happy & senyum selalu oceyy 🤍</Text>
 
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <Text style={styles.quote}>“{quote}”</Text>
+
       </Animated.View>
 
-      <TouchableOpacity style={styles.button} onPress={nextQuote}>
-        <Text style={styles.buttonText}> seterusnya ⭐</Text>
-      </TouchableOpacity>
+      {!isLastPage && (
+        <TouchableOpacity style={styles.button} onPress={nextQuote}>
+          <Text style={styles.buttonText}> seterusnya ✨</Text>
+        </TouchableOpacity>
+      )}
 
-      <Text style={styles.footer}>Ingat, Allah sentiasa ada bersama awak.</Text>
+      {isLastPage && (
+        <View style={styles.lastPageContainer}>
+          
+
+          <TouchableOpacity style={styles.backButton} onPress={backToMain}>
+            <Text style={styles.backButtonText}>Kembali ke Awal ↺</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Text style={styles.footer}>
+        Ingat, Allah sentiasa ada bersama kamu.
+      </Text>
     </View>
   );
 }
@@ -126,32 +161,44 @@ const styles = StyleSheet.create({
   },
   sparkleOne: {
     position: "absolute",
-    top: 80,
-    right: 80,
-    fontSize: 30,
+    top: 65,
+    right: 100,
+    fontSize: 32,
   },
   sparkleTwo: {
     position: "absolute",
-    top: 220,
+    top: 145,
     left: 35,
-    fontSize: 28,
+    fontSize: 30,
   },
   sparkleThree: {
     position: "absolute",
-    bottom: 230,
-    right: 40,
-    fontSize: 30,
+    top: 165,
+    right: 35,
+    fontSize: 28,
   },
   sparkleFour: {
     position: "absolute",
-    bottom: 90,
-    left: 90,
+    bottom: 95,
+    left: 80,
     fontSize: 30,
+  },
+  sparkleFive: {
+    position: "absolute",
+    bottom: 150,
+    right: 55,
+    fontSize: 32,
+  },
+  sparkleSix: {
+    position: "absolute",
+    bottom: 300,
+    left: 50,
+    fontSize: 26,
   },
   loveOne: {
     position: "absolute",
-    top: 145,
-    right: 40,
+    top: 95,
+    left: 120,
     fontSize: 34,
   },
   title: {
@@ -188,6 +235,11 @@ const styles = StyleSheet.create({
     color: "#17324D",
     fontWeight: "600",
   },
+  finalEmoji: {
+    fontSize: 38,
+    textAlign: "center",
+    marginTop: 18,
+  },
   button: {
     backgroundColor: "#4A90E2",
     paddingVertical: 16,
@@ -200,6 +252,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  lastPageContainer: {
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  doneText: {
+    fontSize: 18,
+    color: "#1E4D8C",
+    fontWeight: "bold",
+    marginBottom: 14,
+  },
+  backButton: {
+    backgroundColor: "#7FB3FF",
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: 30,
+  },
+  backButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   footer: {
     fontSize: 15,
