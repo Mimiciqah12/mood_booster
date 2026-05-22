@@ -1,354 +1,596 @@
-import React, { useEffect, useRef, useState } from "react";
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Modal,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
-export default function HomeScreen() {
-  const float1 = useRef(new Animated.Value(0)).current;
-  const float2 = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(1)).current;
-  const fade = useRef(new Animated.Value(1)).current;
+const MUSIC_SOURCE = require("../../assets/music.mp3");
 
-  const quotes = [
-    "Allah tidak pernah silap dalam mengatur hidup awak, so kita kene yakin setiap yang berlaku pasti ada ganjarannya suatu hari nanti.",
-    "Tenanglah, apa yang ditakdirkan untuk awak pasti akan sampai kepada awak juga nanti.",
-    "Jangan terlalu risau. Allah tahu apa yang terbaik untuk awak.",
-    "Kadang Allah tangguhkan sesuatu kerana Dia mahu beri yang lebih baik.",
-    "Senyum. Kamu sedang dijaga oleh Allah dalam cara yang kamu belum nampak.",
-    "Percaya pada takdir Allah. Setiap yang berlaku pasti ada hikmahnya.",
-    "Hari ini mungkin berat, tapi Allah tidak akan membebani hamba-Nya melebihi kemampuan.",
-    "Semoga Amir diberikan kebahagiaan yang melimpah dan selalu dikelilingi oleh orang-orang yang baik. ",
-    "Semoga dapat siapkan lab and FYP dengan lancar dan dapat hasil yang memuaskan.",
-    "Semoga Amir tak kene marah dengan lecturer nanti oceyyy, so dont be so sad and just be happy.",
-    "Last but not least, semoga Amir sentiasa kuat, bahagia, dan terus percaya bahawa aturan Allah itu sentiasa yang terbaik 🤍",
-  ];
+const HERO_LINES = [
+  "Jangan sedih, Allah ada.",
+  "Awak tak perlu kuat seorang diri.",
+  "Hari ini susah, tapi awak masih bertahan.",
+  "Tenang. Allah tahu isi hati awak.",
+];
 
-  const mainText =
-    "Assalamualaikum, Amir Zafran. I hope you will be happy untuk sepanjang hari ini ✨";
+const SUPPORT_LINES = [
+  "Semangat kecil pun tetap semangat.",
+  "One tiny step is still progress.",
+  "Allah nampak usaha yang orang lain tak nampak.",
+  "Rest is allowed. Giving up is not required.",
+];
 
-  const [quote, setQuote] = useState(mainText);
-  const [typedQuote, setTypedQuote] = useState(mainText);
-  const [index, setIndex] = useState(-1);
+const LOVE_LETTER = `Untuk awak yang sangat istimewa,
 
-  const isLastPage = index === quotes.length - 1;
+Kalau hari ini rasa berat, tarik nafas perlahan-lahan dulu. Awak tak perlu kuat setiap masa. Awak juga manusia, dan manusia boleh penat, boleh sedih, boleh rasa kosong sekejap.
+
+Saya cuma nak awak tahu, kewujudan awak sangat berharga. Cara awak terus cuba walaupun hati penat itu bukan benda kecil. Itu tanda awak masih ada harapan dalam diri, walaupun kadang-kadang awak sendiri tak nampak.
+
+Jangan simpan sedih itu terlalu lama seorang diri. Allah tahu apa yang awak pendam, Allah nampak usaha awak, dan Allah dengar doa yang awak bisikkan dalam diam.
+
+Awak tak perlu sempurna untuk disayangi. Awak tak perlu sentiasa ceria untuk dianggap kuat. Awak tetap special, tetap berharga, dan tetap layak untuk hari-hari yang lembut.
+
+Semoga hati awak perlahan-lahan tenang, fikiran awak jadi ringan, dan senyum kecil datang balik walaupun sedikit demi sedikit.
+
+Teruskan hidup, ya. Dunia masih perlukan awak yang baik hati ini.`;
+
+const HEART_CALM_MESSAGE = `Take a slow breath.
+
+You made it to 100%, but you do not have to be 100% all the time.
+
+Even when your heart feels tired, Allah still knows your name, your effort, and every quiet thing you are carrying.
+
+May your chest feel lighter, your thoughts become softer, and your day give you one small reason to smile.`;
+
+export default function HomeScreen(): React.JSX.Element {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 900;
+  const player = useAudioPlayer(MUSIC_SOURCE, { updateInterval: 250 });
+  const musicStatus = useAudioPlayerStatus(player);
+  const letterScale = useRef(new Animated.Value(0.94)).current;
+  const calmScale = useRef(new Animated.Value(0.94)).current;
+
+  const [points, setPoints] = useState<number>(0);
+  const [quoteIndex, setQuoteIndex] = useState<number>(0);
+  const [isLetterOpen, setIsLetterOpen] = useState<boolean>(false);
+  const [isCalmOpen, setIsCalmOpen] = useState<boolean>(false);
+  const [hasShownCalm, setHasShownCalm] = useState<boolean>(false);
+  const [typedLetter, setTypedLetter] = useState<string>("");
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(float1, {
-          toValue: -25,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(float1, {
-          toValue: 0,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(float2, {
-          toValue: 25,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(float2, {
-          toValue: 0,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      interruptionMode: "duckOthers",
+    });
   }, []);
 
   useEffect(() => {
-    setTypedQuote("");
+    player.loop = true;
+    player.volume = 0.45;
+  }, [player]);
 
-    let currentText = "";
-    let currentIndex = 0;
+  useEffect(() => {
+    const quoteTimer = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % HERO_LINES.length);
+    }, 3000);
 
+    return () => clearInterval(quoteTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!isLetterOpen) {
+      setTypedLetter("");
+      return;
+    }
+
+    setTypedLetter("");
+    letterScale.setValue(0.94);
+
+    Animated.spring(letterScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+
+    let nextIndex = 0;
     const typing = setInterval(() => {
-      currentText += quote[currentIndex];
-      setTypedQuote(currentText);
-      currentIndex++;
+      nextIndex += 1;
+      setTypedLetter(LOVE_LETTER.slice(0, nextIndex));
 
-      if (currentIndex >= quote.length) {
+      if (nextIndex >= LOVE_LETTER.length) {
         clearInterval(typing);
       }
-    }, 35);
+    }, 28);
 
     return () => clearInterval(typing);
-  }, [quote]);
+  }, [isLetterOpen, letterScale]);
 
-  const playAnimation = (isFinal: boolean) => {
-    Animated.sequence([
-      Animated.timing(fade, {
-        toValue: 0.4,
-        duration: 120,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fade, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scale, {
-        toValue: isFinal ? 1.18 : 1.08,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scale, {
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  useEffect(() => {
+    if (!isCalmOpen) {
+      return;
+    }
+
+    calmScale.setValue(0.94);
+
+    Animated.spring(calmScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  }, [calmScale, isCalmOpen]);
+
+  const progressWidth = useMemo<`${number}%`>(
+    () => `${Math.min(points, 10) * 10}%` as `${number}%`,
+    [points]
+  );
+
+  const energyPercent = Math.min(points, 10) * 10;
+  const heroLine = HERO_LINES[quoteIndex];
+  const supportLine = SUPPORT_LINES[quoteIndex % SUPPORT_LINES.length];
+
+  const startBackgroundMusic = async (): Promise<void> => {
+    if (musicStatus.playing) {
+      return;
+    }
+
+    if (musicStatus.didJustFinish) {
+      await player.seekTo(0);
+    }
+
+    player.play();
   };
 
-  const nextQuote = () => {
-    if (isLastPage) return;
-
-    const nextIndex = index + 1;
-    setIndex(nextIndex);
-    setQuote(quotes[nextIndex]);
-    playAnimation(nextIndex === quotes.length - 1);
+  const stopBackgroundMusic = (): void => {
+    player.pause();
   };
 
-  const backToMain = () => {
-    setIndex(-1);
-    setQuote(mainText);
-    playAnimation(false);
+  const onCheerTap = (): void => {
+    void startBackgroundMusic();
+    setPoints((prev) => {
+      const next = Math.min(prev + 1, 10);
+
+      if (next === 10 && !hasShownCalm) {
+        setHasShownCalm(true);
+        setIsCalmOpen(true);
+      }
+
+      return next;
+    });
+  };
+
+  const onOpenLetter = (): void => {
+    void startBackgroundMusic();
+    setIsLetterOpen(true);
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.Text style={[styles.cloudOne, { transform: [{ translateY: float1 }] }]}>
-        ☁️
-      </Animated.Text>
+    <View style={homeStyles.page}>
+      <ScrollView
+        contentContainerStyle={[homeStyles.content, isWide && homeStyles.contentWide]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={homeStyles.hero}>
+          <Text style={homeStyles.title}>Little Heart Garden</Text>
+          <Text style={homeStyles.subtitle}>
+            A soft place to breathe, collect tiny joy, and feel a little lighter.
+          </Text>
 
-      <Animated.Text style={[styles.cloudTwo, { transform: [{ translateY: float2 }] }]}>
-        ☁️
-      </Animated.Text>
+          <View style={homeStyles.mainQuoteCard}>
+            <Text style={homeStyles.mainQuoteText}>{`"${heroLine}"`}</Text>
+            <Text style={homeStyles.mainQuoteSub}>{supportLine}</Text>
+          </View>
 
-      <Animated.Text style={[styles.sparkleOne, { transform: [{ translateY: float1 }] }]}>
-        ✨
-      </Animated.Text>
+          <View style={homeStyles.notePanel}>
+            <Text style={homeStyles.loveSparkles}>♡ ˖ ♡ ˖ ♡</Text>
+            <Text style={homeStyles.noteLabel}>Secret love letter</Text>
+            <Text style={homeStyles.noteText}>
+              A special letter is waiting. Open it slowly.
+            </Text>
+            <Pressable
+              onPress={onOpenLetter}
+              style={({ pressed }) => [homeStyles.noteButton, pressed && homeStyles.pressed]}
+            >
+              <Text style={homeStyles.noteButtonText}>Open love letter</Text>
+            </Pressable>
+            <Text style={homeStyles.loveSparklesBottom}>♡ ♡ ♡</Text>
+          </View>
 
-      <Animated.Text style={[styles.sparkleTwo, { transform: [{ translateY: float2 }] }]}>
-        🌟
-      </Animated.Text>
+          <View style={homeStyles.progressCard}>
+            <View style={homeStyles.progressRow}>
+              <Text style={homeStyles.progressLabel}>Happy energy</Text>
+              <Text style={homeStyles.progressValue}>{energyPercent}%</Text>
+            </View>
+            <View style={homeStyles.progressTrack}>
+              <View style={[homeStyles.progressFill, { width: progressWidth }]} />
+            </View>
+          </View>
 
-      <Animated.Text style={[styles.sparkleThree, { transform: [{ translateY: float1 }] }]}>
-        ✨
-      </Animated.Text>
+          <View style={homeStyles.heroButtons}>
+            <Pressable
+              onPress={onCheerTap}
+              style={({ pressed }) => [
+                homeStyles.primaryButton,
+                energyPercent === 100 && homeStyles.primaryButtonComplete,
+                pressed && homeStyles.pressed,
+              ]}
+            >
+              <Text style={homeStyles.primaryButtonText}>
+                {energyPercent === 100 ? "Send more calm" : "Cheer me up"}
+              </Text>
+            </Pressable>
 
-      <Animated.Text style={[styles.sparkleFour, { transform: [{ translateY: float2 }] }]}>
-        ⭐
-      </Animated.Text>
+          </View>
+        </View>
+      </ScrollView>
 
-      <Animated.Text style={[styles.sparkleFive, { transform: [{ translateY: float1 }] }]}>
-        💫
-      </Animated.Text>
-
-      <Animated.Text style={[styles.sparkleSix, { transform: [{ translateY: float2 }] }]}>
-        ✨
-      </Animated.Text>
-
-      <Animated.Text style={[styles.loveOne, { transform: [{ translateY: float1 }] }]}>
-        💙
-      </Animated.Text>
-
-      <Text style={styles.title}>Hi, Amir</Text>
-      <Text style={styles.subtitle}>Always be happy & senyum selalu oceyy 🤍</Text>
-
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity: fade,
-            transform: [{ scale }],
-          },
+      <Pressable
+        disabled={!musicStatus.playing}
+        onPress={stopBackgroundMusic}
+        style={({ pressed }) => [
+          homeStyles.floatingSoundButton,
+          !musicStatus.playing && homeStyles.floatingSoundButtonDisabled,
+          pressed && musicStatus.playing && homeStyles.pressed,
         ]}
       >
-        <Text style={styles.quote}>“{typedQuote}”</Text>
+        <Text style={homeStyles.floatingSoundIcon}>📻</Text>
+      </Pressable>
 
-        {isLastPage && (
-          <Animated.Text style={[styles.finalEmoji, { transform: [{ scale }] }]}>
-            ✨🌟🤍🌟✨
-          </Animated.Text>
-        )}
-      </Animated.View>
-
-      {!isLastPage && (
-        <TouchableOpacity style={styles.button} onPress={nextQuote}>
-          <Text style={styles.buttonText}>Tekan untuk lihat ayat seterusnya ✨</Text>
-        </TouchableOpacity>
-      )}
-
-      {isLastPage && (
-        <View style={styles.lastPageContainer}>
-          <Text style={styles.doneText}>Selesai ✨🤍✨</Text>
-
-          <TouchableOpacity style={styles.backButton} onPress={backToMain}>
-            <Text style={styles.backButtonText}>Kembali ke Awal ↺</Text>
-          </TouchableOpacity>
+      <Modal
+        visible={isLetterOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsLetterOpen(false)}
+      >
+        <View style={homeStyles.modalBackdrop}>
+          <Animated.View
+            style={[homeStyles.letterShell, { transform: [{ scale: letterScale }] }]}
+          >
+            <View style={homeStyles.letterFold} />
+            <Text style={homeStyles.letterKicker}>A little letter</Text>
+            <ScrollView
+              style={homeStyles.letterScroll}
+              contentContainerStyle={homeStyles.letterScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={homeStyles.letterText}>{typedLetter}</Text>
+            </ScrollView>
+            {typedLetter.length >= LOVE_LETTER.length && (
+              <Pressable
+                onPress={() => setIsLetterOpen(false)}
+                style={({ pressed }) => [homeStyles.backHomeButton, pressed && homeStyles.pressed]}
+              >
+                <Text style={homeStyles.backHomeButtonText}>Back home</Text>
+              </Pressable>
+            )}
+          </Animated.View>
         </View>
-      )}
+      </Modal>
 
-      <Text style={styles.footer}>
-        Ingat, Allah sentiasa ada bersama kamu.
-      </Text>
+      <Modal
+        visible={isCalmOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsCalmOpen(false)}
+      >
+        <View style={homeStyles.modalBackdrop}>
+          <Animated.View
+            style={[homeStyles.calmShell, { transform: [{ scale: calmScale }] }]}
+          >
+            <Text style={homeStyles.calmTitle}>Your heart can rest now</Text>
+            <Text style={homeStyles.calmText}>{HEART_CALM_MESSAGE}</Text>
+            <Pressable
+              onPress={() => setIsCalmOpen(false)}
+              style={({ pressed }) => [homeStyles.backHomeButton, pressed && homeStyles.pressed]}
+            >
+              <Text style={homeStyles.backHomeButtonText}>Back home</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const homeStyles = StyleSheet.create({
+  page: {
     flex: 1,
-    backgroundColor: "#EAF6FF",
+    backgroundColor: "#FFF7FC",
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 36,
+    gap: 16,
+  },
+  contentWide: {
     alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    overflow: "hidden",
   },
-  cloudOne: {
-    position: "absolute",
-    top: 40,
-    left: 25,
-    fontSize: 42,
-    opacity: 0.75,
-  },
-  cloudTwo: {
-    position: "absolute",
-    bottom: 55,
-    right: 30,
-    fontSize: 46,
-    opacity: 0.75,
-  },
-  sparkleOne: {
-    position: "absolute",
-    top: 65,
-    right: 70,
-    fontSize: 32,
-  },
-  sparkleTwo: {
-    position: "absolute",
-    top: 145,
-    left: 35,
-    fontSize: 30,
-  },
-  sparkleThree: {
-    position: "absolute",
-    top: 245,
-    right: 35,
-    fontSize: 28,
-  },
-  sparkleFour: {
-    position: "absolute",
-    bottom: 95,
-    left: 80,
-    fontSize: 30,
-  },
-  sparkleFive: {
-    position: "absolute",
-    bottom: 210,
-    right: 55,
-    fontSize: 32,
-  },
-  sparkleSix: {
-    position: "absolute",
-    bottom: 300,
-    left: 50,
-    fontSize: 26,
-  },
-  loveOne: {
-    position: "absolute",
-    top: 95,
-    left: 120,
-    fontSize: 34,
+  hero: {
+    width: "100%",
+    maxWidth: 1100,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: "#F3DDF4",
+    shadowColor: "#AE7CFF",
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 5,
   },
   title: {
-    fontSize: 34,
-    fontWeight: "bold",
-    color: "#1E4D8C",
+    fontSize: 36,
+    lineHeight: 42,
+    fontWeight: "900",
+    color: "#2F1739",
+    textAlign: "center",
+  },
+  subtitle: {
+    marginTop: 10,
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#6E5D77",
+    textAlign: "center",
+  },
+  mainQuoteCard: {
+    marginTop: 18,
+    backgroundColor: "#FFF1FA",
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#F8D8EA",
+  },
+  mainQuoteText: {
+    fontSize: 28,
+    lineHeight: 36,
+    fontWeight: "900",
+    color: "#45285B",
+    textAlign: "center",
+  },
+  mainQuoteSub: {
+    marginTop: 10,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "700",
+    color: "#7A6389",
+    textAlign: "center",
+  },
+  notePanel: {
+    marginTop: 18,
+    minHeight: 230,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFAE8",
+    borderRadius: 30,
+    paddingHorizontal: 26,
+    paddingVertical: 30,
+    borderWidth: 1,
+    borderColor: "#F5E4A8",
+  },
+  loveSparkles: {
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: "900",
+    color: "#D85C8A",
     textAlign: "center",
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 18,
-    color: "#3A6EA5",
-    marginBottom: 30,
-    fontWeight: "600",
+  loveSparklesBottom: {
+    marginTop: 14,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "900",
+    color: "#D85C8A",
     textAlign: "center",
   },
-  card: {
-    backgroundColor: "#FFFFFF",
-    padding: 28,
-    borderRadius: 24,
-    width: "100%",
-    minHeight: 245,
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom: 30,
+  noteLabel: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#9A6B00",
+    textAlign: "center",
+    textTransform: "uppercase",
   },
-  quote: {
+  noteText: {
+    marginTop: 12,
     fontSize: 22,
-    lineHeight: 34,
+    lineHeight: 32,
+    fontWeight: "800",
+    color: "#4B3723",
     textAlign: "center",
-    color: "#17324D",
-    fontWeight: "600",
   },
-  finalEmoji: {
-    fontSize: 38,
-    textAlign: "center",
-    marginTop: 18,
+  noteButton: {
+    marginTop: 20,
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#F0DB8A",
   },
-  button: {
-    backgroundColor: "#4A90E2",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    marginBottom: 25,
-  },
-  buttonText: {
-    color: "#FFFFFF",
+  noteButtonText: {
     fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: "900",
+    color: "#6C4B00",
   },
-  lastPageContainer: {
+  progressCard: {
+    marginTop: 16,
+    backgroundColor: "#F2EEFF",
+    borderRadius: 22,
+    padding: 16,
+  },
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#614AA8",
+  },
+  progressValue: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#614AA8",
+  },
+  progressTrack: {
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: "#DDD3FF",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: "#A78BFA",
+  },
+  heroButtons: {
+    marginTop: 18,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: "#7C3AED",
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 18,
+  },
+  primaryButtonComplete: {
+    backgroundColor: "#FF6FAE",
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+    fontSize: 15,
+  },
+  floatingSoundButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
     alignItems: "center",
-    marginBottom: 25,
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#EADAF3",
+    shadowColor: "#2F1739",
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 7,
+    zIndex: 20,
   },
-  doneText: {
-    fontSize: 18,
-    color: "#1E4D8C",
-    fontWeight: "bold",
+  floatingSoundButtonDisabled: {
+    opacity: 0.42,
+  },
+  floatingSoundIcon: {
+    fontSize: 26,
+  },
+  modalBackdrop: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(47, 23, 57, 0.64)",
+    padding: 20,
+  },
+  letterShell: {
+    width: "100%",
+    maxWidth: 680,
+    minHeight: "70%",
+    maxHeight: "92%",
+    backgroundColor: "#FFF9EC",
+    borderRadius: 26,
+    padding: 26,
+    borderWidth: 1,
+    borderColor: "#F2DCA7",
+    shadowColor: "#2F1739",
+    shadowOpacity: 0.26,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 8,
+  },
+  letterFold: {
+    alignSelf: "center",
+    width: 96,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "#E9C875",
     marginBottom: 14,
   },
-  backButton: {
-    backgroundColor: "#7FB3FF",
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 30,
-  },
-  backButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  footer: {
-    fontSize: 15,
-    color: "#3A6EA5",
+  letterKicker: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#9A6B00",
     textAlign: "center",
-    fontWeight: "500",
+    textTransform: "uppercase",
+  },
+  letterScroll: {
+    marginTop: 14,
+    flexGrow: 0,
+  },
+  letterScrollContent: {
+    paddingBottom: 10,
+  },
+  letterText: {
+    fontSize: 20,
+    lineHeight: 33,
+    fontWeight: "700",
+    color: "#4A3327",
+  },
+  backHomeButton: {
+    marginTop: 18,
+    alignSelf: "center",
+    backgroundColor: "#7C3AED",
+    borderRadius: 18,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+  },
+  backHomeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  calmShell: {
+    width: "100%",
+    maxWidth: 500,
+    backgroundColor: "#FFF9EC",
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "#F2DCA7",
+    shadowColor: "#2F1739",
+    shadowOpacity: 0.24,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 8,
+  },
+  calmTitle: {
+    marginTop: 10,
+    fontSize: 26,
+    lineHeight: 34,
+    fontWeight: "900",
+    color: "#2F1739",
+    textAlign: "center",
+  },
+  calmText: {
+    marginTop: 14,
+    fontSize: 17,
+    lineHeight: 28,
+    fontWeight: "700",
+    color: "#594438",
+    textAlign: "center",
+  },
+  pressed: {
+    opacity: 0.93,
+    transform: [{ scale: 0.98 }],
   },
 });
