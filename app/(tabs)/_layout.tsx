@@ -31,28 +31,27 @@ export default function TabsLayout(): React.JSX.Element {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: () => <TabIcon emoji="🌈" />,
         }}
       />
       <Tabs.Screen
         name="games"
         options={{
           title: "Games",
-          tabBarIcon: () => <TabIcon emoji="🎠" />,
+          
         }}
       />
       <Tabs.Screen
         name="quotes"
         options={{
           title: "Quotes",
-          tabBarIcon: () => <TabIcon emoji="💜" />,
+         
         }}
       />
       <Tabs.Screen
         name="check-in"
         options={{
           title: "Mood",
-          tabBarIcon: () => <TabIcon emoji="🫶" />,
+          
         }}
       />
     </Tabs>
