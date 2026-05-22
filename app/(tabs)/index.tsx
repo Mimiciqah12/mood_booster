@@ -27,7 +27,7 @@ const SUPPORT_LINES = [
   "Rest is allowed. Giving up is not required.",
 ];
 
-const LOVE_LETTER = `Untuk awak yang sangat istimewa,
+const LOVE_LETTER = `Dear bestie,
 
 Kalau hari ini rasa berat, tarik nafas perlahan-lahan dulu. Awak tak perlu kuat setiap masa. Awak juga manusia, dan manusia boleh penat, boleh sedih, boleh rasa kosong sekejap.
 
@@ -41,13 +41,13 @@ Semoga hati awak perlahan-lahan tenang, fikiran awak jadi ringan, dan senyum kec
 
 Teruskan hidup, ya. Dunia masih perlukan awak yang baik hati ini.`;
 
-const HEART_CALM_MESSAGE = `Take a slow breath.
+const HEART_CALM_MESSAGE = `Tarik nafas perlahan-lahan.
 
-You made it to 100%, but you do not have to be 100% all the time.
+Awak dah sampai 100%, tapi awak tak perlu jadi 100% kuat sepanjang masa.
 
-Even when your heart feels tired, Allah still knows your name, your effort, and every quiet thing you are carrying.
+Walaupun hati awak rasa penat, Allah tetap tahu nama awak, usaha awak, dan semua beban senyap yang awak sedang bawa.
 
-May your chest feel lighter, your thoughts become softer, and your day give you one small reason to smile.`;
+Semoga dada awak rasa lebih lapang, fikiran awak jadi lebih lembut, dan hari awak beri satu sebab kecil untuk tersenyum.`;
 
 export default function HomeScreen(): React.JSX.Element {
   const { width } = useWindowDimensions();
@@ -281,7 +281,7 @@ export default function HomeScreen(): React.JSX.Element {
           <Animated.View
             style={[homeStyles.calmShell, { transform: [{ scale: calmScale }] }]}
           >
-            <Text style={homeStyles.calmTitle}>Your heart can rest now</Text>
+            <Text style={homeStyles.calmTitle}>Hati awak boleh rehat sekarang</Text>
             <Text style={homeStyles.calmText}>{HEART_CALM_MESSAGE}</Text>
             <Pressable
               onPress={() => setIsCalmOpen(false)}
